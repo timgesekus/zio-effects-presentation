@@ -1,0 +1,11 @@
+{
+    "editor.fontSize": 24,
+    "editor.fontWeight": 600,
+    "editor.formatOnSave": false,
+    "terminal.integrated.fontFamily": "SF Mono",
+    "terminal.integrated.fontWeight": 800,
+    "terminal.integrated.fontSize": 28,
+    "workbench.colorTheme": "Visual Studio Dark",
+    "markdown.marp.exportType": "pptx",
+    "editor.tabSize": 2
+}
