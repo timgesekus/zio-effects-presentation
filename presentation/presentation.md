@@ -74,7 +74,6 @@ Bei jeden Aufruf kommt potentiell ein andere Wert raus
 def rollDice2(): State[Seed, Int]  = for {
       dice <- nextLong
   } yield dice.toInt %6 + 1
-  
 ```
 
 Das State Pattern kann vieles, aber nicht alles loesen
@@ -132,7 +131,6 @@ Wir definieren Helferlein
 def succeed[A](a: => A): Console[A] = Return(() => a)
 def printLine(line: String): Console[Unit] = PrintLine(line, succeed(()))
 val readLine: Console[String] = ReadLine(line => succeed(line))
-
 ```
 
 ---
@@ -162,7 +160,6 @@ val readLine: Console[String] = ReadLine(line => succeed(line))
 # FP Konsole 2.0
 
 ``` scala
-
   def advanced() = {
     val example2: Console[String] = for {
       _      <- printLine("Sag Hallo zur Konsole")
@@ -173,5 +170,164 @@ val readLine: Console[String] = ReadLine(line => succeed(line))
     val retval2 = interpret(example2)
     println(s"Der Rueckgageberwert war ${retval2}")
   }
+```
 
+---
+
+# Functional Effect
+
+* Ist letztlich Code als Wert
+* Immutable und typensicher
+* Wird in einer Umgebung interpretiert wird
+* Ist in Haskell fest eingebaut
+    
+---
+
+# Function Effect Frameworks
+
+Es gibt diverse Frameworks
+
+* Monix
+* Cats effects
+* ZIO
+
+----
+
+# Zio
+![](zio.png)
+Type-safe, composable asynchronous and concurrent programming
+
+---
+
+# Wichtigster Datentyp
+
+``` scala
+ZIO[R, E, A]
+```
+
+* R - Umgebung
+* E - Fehler Typ
+* A - Ergebnis Typ
+
+Der Interpreter wandelt
+
+``` scala
+R => Either[E,A]
+```
+---
+
+# Fehler und Ergebnistyp
+
+## Fehler
+
+Wenn der Fehlertype Nothing ist. Hat der Effekt keinen Fehlerfall.
+
+## Ergebnistyp
+* Unit -> Kein sinnvolles Ergebnis. Nur fuer den Seiteneffekt
+* Nothing -> Der Effekt laeuft ewig
+
+---
+
+# Environment
+
+* Was braucht der Effekt um zu laufen?
+* Guice ohne Reflektion.
+* Mit voller Type Inference
+* Der Compiler checked ob alles da ist
+
+----
+  
+# Konstruieren von Effekten
+
+``` scala
+val s1: ZIO[Any, Nothing, String]            = ZIO.succeed("Hat geklappt")
+val e1: ZIO[Any, IllegalStateException, Any] = ZIO.fail(new IllegalStateException())
+val se1: ZIO[Any, Throwable, String]         = ZIO.effect(StdIn.readLine())
+val sleeping: ZIO[Blocking, Throwable, Unit] = effectBlocking(Thread.sleep(Long.MaxValue))
+```
+
+---
+
+# Chaining
+
+_ZIO[R,E,A]_ ist eine Monade. Deswegen haben wir _flatmap_ und _map_
+
+## Ohne for comprehension
+``` scala
+  val ex1 : ZIO[Console, Exception, Int] = {
+    ZIO.environment[Console]
+    .flatMap( c => c.console.getStrLn)
+    .map( s=> s.length())
+  }
+```
+---
+
+# Chaining
+
+In Scala kann man das schoener machen
+
+## Mit for comprehension
+```scala
+  val ex2 : ZIO[Console, Exception, Int] = for {
+    c <- ZIO.environment[Console]
+    s <- c.console.getStrLn
+  } yield s.length()
+```
+---
+
+# Running effects
+
+---
+
+# But why
+
+Angenommen wir haben zwei Effekte
+
+``` scala
+  def getConfigFromServer(): ZIO[Any, Exception, Config] = ???
+  def getDefaultConfig(): ZIO[Any, Exception, Config]    = ???
+```
+
+Die wissen nichts von Thread oder sonst irgenwas. Aber da sie nur interpretiert werden.
+
+Vielleicht kann ja ZIO helfen
+
+---
+
+# Machs nochmal Sam
+
+``` scala
+def getConfig(): ZIO[Clock, Exception, Config] =
+    getConfigFromServer()
+      .retry(Schedule.recurs(4))
+      .orElse(getDefaultConfig())
+```
+
+## Aber nicht so lang
+
+``` scala
+ def getConfig2(): ZIO[Clock, Exception, Config] =
+    (getConfigFromServer().timeoutFail(new Exception("Timeout"))(1000.millis))
+      .retry(Schedule.recurs(4))
+      .orElse(getDefaultConfig())
+```
+---
+
+# Oder parallel
+
+```scala
+  def getConfig4(): ZIO[Clock, Exception, Config] = for {
+      fiber1 <- getConfigFromServer().fork
+      fiber2 <- getDefaultConfig().fork
+      fiber = fiber1.orElse(fiber2)
+      config <- fiber.join
+  } yield config
+  ```
+
+  ## Wer gewinnt
+
+```scala
+  def getConfig3(): ZIO[Clock, Exception, Config] = for {
+      config <- getConfigFromServer().race(getDefaultConfig())
+  } yield config
 ```
