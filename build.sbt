@@ -1,4 +1,4 @@
-val ZioVersion    = "1.0.0-RC11"
+val ZioVersion    = "1.0.0-RC17+431-b8a79026-SNAPSHOT"
 val Specs2Version = "4.7.0"
 
 resolvers += Resolver.sonatypeRepo("releases")
