@@ -277,6 +277,18 @@ In Scala kann man das schoener machen
 
 # Running effects
 
+Effekte laufen in einer Runtime
+``` scala
+  def prog :  ZIO[Console, IOException, String] = for {
+    input <- getStrLn
+    _ <- putStr(s"Input String was $input")
+  } yield input
+
+  val progWithEnv : ZIO[Any, IOException, String] = prog.provide(Console.Live)
+  val runtime = new DefaultRuntime {}
+  runtime.unsafeRun(progWithEnv)
+```
+
 ---
 
 # But why
