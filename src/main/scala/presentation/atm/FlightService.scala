@@ -25,4 +25,8 @@ object FlightService {
           } yield flightPlan
       }
   }
+  def getFlight(flightId: Int): ZIO[FlightService, Exception, Flight] =
+    ZIO.accessM(_.get.getFlight(flightId))
+  def getFlightPlan(flightId: Int): ZIO[FlightService, Exception, FlightPlan] =
+    ZIO.accessM(_.get.getFlightPlan(flightId))
 }

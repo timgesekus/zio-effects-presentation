@@ -13,4 +13,6 @@ object FlightPlanService {
         ZIO.succeed(FlightPlan(4, "TST113"))
     }
   }
+  def getFlightPlan(flightPlanId: Int): ZIO[FlightPlanService, Exception, FlightPlan] =
+    ZIO.accessM(_.get.getFlightPlan(flightPlanId))
 }

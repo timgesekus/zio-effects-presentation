@@ -8,12 +8,11 @@ object RunEffect {
 
   val env = FlightService.live ++ FlightPlanService.live
 
-  def prog =
+  def prog: ZIO[FlightService with Console, Exception, String] =
     for {
-      flightPlan <- ZIO.environment[FlightService].flatMap(_.get.getFlightPlan(1))
-      callsign   = flightPlan.callsign
-      _          <- putStrLn(s"Callsing is $callsign")
-    } yield callsign
+      flightPlan <- FlightService.getFlightPlan(1)
+      _          <- putStrLn(s"Callsing is $flightPlan")
+    } yield flightPlan.callsign
 
   def main(args: Array[String]): Unit = {
     val out = Runtime.default.unsafeRun(prog.provideLayer(Console.live ++ liveServices))
