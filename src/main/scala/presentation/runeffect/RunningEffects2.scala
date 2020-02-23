@@ -12,7 +12,7 @@ object RunningEffects2 {
     _ <- putStr(s"Input String was $input")
   } yield input
 
-  val progWithEnv : ZIO[Any, IOException, String] = prog.provide(Console.Live)
+  val progWithEnv : ZIO[Any, IOException, String] = prog.provideLayer(zio.console.Console.live)
   val runtime = new DefaultRuntime {}
   runtime.unsafeRun(progWithEnv)
 }

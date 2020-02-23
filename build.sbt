@@ -22,9 +22,10 @@ lazy val root = (project in file("."))
 scalacOptions --= Seq(
   "-Xfatal-warnings"
 )
-mainClass in (Compile, run) := Some( "presentation.runeffect.RunningEffects" )
+mainClass in (Compile, run) := Some( "presentation.atm.RunningEffects" )
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 
 addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 addCommandAlias("chk", "all scalafmtSbtCheck scalafmtCheck test:scalafmtCheck")
+

@@ -2,6 +2,7 @@ package hello
 
 import zio.App
 import zio.console.{ putStrLn }
+import zio.ZIO
 
 object Main extends App {  
   def run(args: List[String]) =
@@ -10,5 +11,6 @@ object Main extends App {
   val myAppLogic =
     for {
       _ <- putStrLn("Hello World")
+      _ <- ZIO.fail ("Nix gibts")
     } yield ()
 }
