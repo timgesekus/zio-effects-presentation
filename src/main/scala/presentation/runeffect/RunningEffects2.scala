@@ -2,7 +2,7 @@ package presentation.runeffect
 import  zio.ZIO
 import zio.console._
 import java.io.IOException
-import zio.DefaultRuntime
+import zio.Runtime
 
 
 object RunningEffects2 {
@@ -12,7 +12,7 @@ object RunningEffects2 {
     _ <- putStr(s"Input String was $input")
   } yield input
 
-  val progWithEnv : ZIO[Any, IOException, String] = prog.provide(Console.Live)
-  val runtime = new DefaultRuntime {}
+  val progWithEnv : ZIO[Any, IOException, String] = prog.provideLayer(Console.live)
+  val runtime = Runtime.default
   runtime.unsafeRun(progWithEnv)
 }

@@ -5,7 +5,7 @@ import zio.console.{ putStrLn }
 
 object Main extends App {  
   def run(args: List[String]) =
-    myAppLogic.fold(_ => 1, _ => 0)
+    myAppLogic.map(_ => 1)
 
   val myAppLogic =
     for {

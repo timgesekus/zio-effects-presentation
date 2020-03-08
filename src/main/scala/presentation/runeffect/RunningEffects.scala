@@ -1,6 +1,6 @@
 package presentation.runeffect
 
-import zio.DefaultRuntime
+import zio.Runtime
 
 import zio.ZIO
 import zio.UIO
@@ -16,7 +16,7 @@ object RunningEffects {
   val env = new FlightPlanService.Live with FlightService.Live {}
 
   def main(args: Array[String]): Unit = {
-    val runtime = new DefaultRuntime {}
+    val runtime = Runtime.default
     val appLogic: ZIO[Any, Nothing, String] = prog
       .provide(env)
       .foldM(
