@@ -363,7 +363,10 @@ def getConfig(): ZIO[Clock, Exception, Config] =
 
 ## Beispiel
 
-
+Kleines Beispiel ist im Ordner _src/main/scala/presentation/atm_
+* Definition von Services
+* Abhängigkeiten zwischen Services
+* Effekt laufen lassen
 
 ## Referenzen
 
