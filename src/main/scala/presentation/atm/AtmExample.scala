@@ -5,16 +5,21 @@ import zio.Runtime
 import zio.console._
 import zio.UIO
 
+//Import shortcuts
+import FlightService._
+
 object AtmExample {
 
+  // Define Live env
   val env = FlightService.live ++ FlightPlanService.live
 
   def prog: ZIO[FlightService with Console, Exception, String] =
     for {
-      flightPlan <- FlightService.getFlightPlan(1)
+      flightPlan <- getFlightPlan(FlightId(1))
       _          <- putStrLn(s"Callsign is $flightPlan")
     } yield flightPlan.callsign
 
+    
   def main(args: Array[String]): Unit = {
     val providedProg: ZIO[Any, Exception, String] = prog.provideLayer(Console.live ++ liveServices)
     val errorFreeProg: ZIO[Any, Nothing, String] = providedProg.foldM(

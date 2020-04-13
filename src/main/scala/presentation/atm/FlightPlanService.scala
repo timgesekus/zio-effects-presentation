@@ -5,14 +5,18 @@ import zio.ZIO
 
 object FlightPlanService {
   trait Service {
-    def getFlightPlan(flightPlanId: Int): ZIO[Any, Exception, FlightPlan]
+    def getFlightPlan(id: FlightPlanId): ZIO[Any, Exception, FlightPlan]
   }
+  // Live implementation of the service as a layer
+  // This service does not depend on other services
   def live = ZLayer.succeed {
     new Service {
-      final def getFlightPlan(flightPlanId: Int): ZIO[Any, Exception, FlightPlan] =
-        ZIO.succeed(FlightPlan(4, "TST113"))
+      final def getFlightPlan(id: FlightPlanId): ZIO[Any, Exception, FlightPlan] =
+        ZIO.succeed(FlightPlan(FlightPlanId(4), "TST113"))
     }
   }
-  def getFlightPlan(flightPlanId: Int): ZIO[FlightPlanService, Exception, FlightPlan] =
-    ZIO.accessM(_.get.getFlightPlan(flightPlanId))
+
+  // Provide easy acccess to the service
+  def getFlightPlan(id: FlightPlanId): ZIO[FlightPlanService, Exception, FlightPlan] =
+    ZIO.accessM(_.get.getFlightPlan(id))
 }

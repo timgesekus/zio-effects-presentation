@@ -361,6 +361,10 @@ def getConfig(): ZIO[Clock, Exception, Config] =
 * Funktionale Effekt Frameworks eröffnen viele Möglichkeiten
 * Es gibt Implementierungen in Java. :)
 
+## Beispiel
+
+
+
 ## Referenzen
 
 * [ZIO](https://zio.dev)

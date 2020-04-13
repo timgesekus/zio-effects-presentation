@@ -22,7 +22,7 @@ lazy val root = (project in file("."))
 scalacOptions --= Seq(
   "-Xfatal-warnings"
 )
-mainClass in (Compile, run) := Some( "presentation.atm.RunningEffects" )
+mainClass in (Compile, run) := Some( "presentation.atm.AtmExample" )
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 
