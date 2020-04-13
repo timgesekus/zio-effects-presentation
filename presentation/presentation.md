@@ -12,19 +12,26 @@ footer: "Tim Gesekus - Functional Effects"
 
 # **Functional effects**
 
-Was machen functionale Sprachen eigentlich mit Seiteneffekten und anderem Zeugs
+Was machen functionale Sprachen eigentlich mit Seiteneffekten und anderem Unanehmlichkeiten
 
+## Was sind Effekte
+
+Funktionale Effekte modelieren das Verhalten, dass eine Funktion haben kann.
+* _Optional_ modelliert, dass ein Funktion kein Ergebnis haben kann.
+* _Future_ modelliert "Verzögerung"
+* _State_ modelliert, dass eine Funktion Zustand manipuliert
+* _Either_ modelliert, dass eine Funktion einen Fehlerfall hat  
 ## Funktionen
 
 Funktionen haben die folgenden Eigenschaften
 
-* Total - Jeder Eingabe gibt ein Ausgabe
-* Deterministisch - Die gleiche Eingabe gibt die gleiche Ausgabe
+* Total - Jeder Eingabe ergibt ein Ausgabe
+* Deterministisch - Die gleiche Eingabe gibt immer die gleiche Ausgabe
 * Rein - Keine Seiteneffekte
   
 ## Total
 
-Ein Beispiel fuer eine nicht totale Funktion
+Ein Beispiel für eine nicht totale Funktion
 
 ``` scala
 def total(num: Int) : Int = {
@@ -35,7 +42,7 @@ def total(num: Int) : Int = {
   }
 ```
 
-Fuer einige Werte wift die Funktion eine Exception und hat keinen Wert
+Für einige Werte wirft die Funktion eine Exception und hat keinen Wert
 
 ## Total - Either zur Rettung
 
@@ -52,7 +59,7 @@ Mit Either kann auch im Fehlerfall ein Ergebnis ausgegeben werden.
 
 ## Deterministisch
 
-Eine Beispiel fuer eine nicht deterministische Funktion
+Eine Beispiel für eine nicht deterministische Funktion
 
 ``` scala
 public void rollDice() {
@@ -60,6 +67,7 @@ public void rollDice() {
     return roll
 }
 ```
+
 Bei jeden Aufruf kommt potentiell ein andere Wert raus
 
 ## Deterministisch - State als Retter (manchmal)
@@ -70,11 +78,11 @@ def rollDice2(): State[Seed, Int]  = for {
   } yield dice.toInt %6 + 1
 ```
 
-Das State Pattern kann vieles, aber nicht alles loesen
+Das State Pattern kann vieles, aber nicht alles lösen
 
-## Rein
+## Rein (Pure)
 
-Ein Beispiel fuer eine nicht pure Funktion
+Ein Beispiel für eine nicht reine Funktion
 
 ``` java
 public void unpure() {
@@ -85,10 +93,12 @@ public void unpure() {
 Die Funktion hat einen Seiteneffekt: Ausgabe auf Konsole.
 Hier wird es schwierig.
 
-## Functional Effects
+## Effekte
 
-* Kein Programm mit Sinn ist ohne Seiteneffekte
-* Wenn wir das schon machen, dann am Rand unserers Programmes
+* Kein Programm mit Sinn ist ohne Seiten- und andere Effekte
+* Wenn wir das schon machen, dann trennen wir diesen Teil ab.
+
+Anhand der Konsolen Ausgabe spielen wir durch, wie man das in einer funktionalen Programmiersprache macht.
 
 ## Modell eines Konsolen Programms
 
@@ -100,18 +110,32 @@ final case class ReadLine[A](rest: String => Console[A])      extends Console[A]
 ```
 
 ``` scala
- def basic() = {
-    val example =
-      PrintLine(
-        "Sag hallo zur Konsole",
-        ReadLine(line => PrintLine(s"Es wurde ${line} eingegeben", Return(() => line)))
+  val example : Console[String] =
+    PrintLine( "Sag hallo zur Konsole",
+      ReadLine( line => PrintLine(s"Es wurde ${line} eingegeben", 
+        Return(() => line)))
       )
     val retval = interpret(example)
     println(s"Der Rueckgageberwert war ${retval}")
-  }  
 ```
 
-## Machen wir es huebscher
+## Der Interpreter
+
+```scala
+def interpret[A](console: Console[A]): A =
+    console match {
+      case PrintLine(line, next) => {
+        println(line)
+        interpret(next)
+      }
+      case ReadLine(next) => {
+        interpret(next(scala.io.StdIn.readLine()))
+      }
+      case Return(value) => value()
+    }
+```
+
+## Machen wir es hübscher
 
 Wir definieren Helferlein
 
@@ -121,7 +145,7 @@ def printLine(line: String): Console[Unit] = PrintLine(line, succeed(()))
 val readLine: Console[String] = ReadLine(line => succeed(line))
 ```
 
-## Und noch zu einer Monade
+## Und machen noch eine Monade daraus
 
 ``` scala
 
@@ -160,16 +184,18 @@ val readLine: Console[String] = ReadLine(line => succeed(line))
 
 * Ist letztlich Code als Wert
 * Immutable und typensicher
-* Wird in einer Umgebung interpretiert wird
-* Ist in Haskell fest eingebaut
+* Wird in einer Umgebung interpretiert
+* Trennt reinen Code mit allen Vorteilen von FP vom Rest.
 
 ## Function Effect Frameworks
 
 Es gibt diverse Frameworks
 
-* Monix
-* Cats effects
-* ZIO
+* Monix (Scala)
+* Cats effects (Scala)
+* ZIO (Scala)
+* Functional Java (Java)
+* Cyclops X (Java)
 
 ## Zio
 
@@ -190,16 +216,18 @@ Der Interpreter wandelt
 
 ``` scala
 R => Either[E,A]
+```
 
 ## Fehler und Ergebnistyp
 
-## Fehler
+### Fehler
 
 Wenn der Fehlertype Nothing ist. Hat der Effekt keinen Fehlerfall.
 
-## Ergebnistyp
-* Unit -> Kein sinnvolles Ergebnis. Nur fuer den Seiteneffekt
-* Nothing -> Der Effekt laeuft ewig
+### Ergebnistyp
+
+* Unit -> Kein sinnvolles Ergebnis. Nur für den Seiteneffekt
+* Nothing -> Der Effekt läuft ewig
 
 ## Environment
 
@@ -233,7 +261,7 @@ _ZIO[R,E,A]_ ist eine Monade. Deswegen haben wir _flatmap_ und _map_
 
 ## Chaining 2
 
-In Scala kann man das schoener machen
+In Scala kann man das schöner machen
 
 ### Mit for comprehension
 
@@ -249,14 +277,26 @@ In Scala kann man das schoener machen
 Effekte laufen in einer Runtime
 
 ``` scala
-  def prog :  ZIO[Console, IOException, String] = for {
-    input <- getStrLn
-    _ <- putStr(s"Input String was $input")
-  } yield input
+  def prog :  ZIO[Console, IOException, String] = ??? 
 
-  val progWithEnv : ZIO[Any, IOException, String] = prog.provide(Console.Live)
-  val runtime = new DefaultRuntime {}
+  val progWithEnv : ZIO[Any, IOException, String] = prog.provideLayer(Console.live)
+  val runtime = Runtime.default
   runtime.unsafeRun(progWithEnv)
+```
+
+## Umgang mit Fehlern
+
+``` scala
+  val progWithError: ZIO[Console, IOException, String] = ???
+
+  val progWithoutError ZIO[Any, Nothing, String] = prog.foldM(
+    error => IO.succeed(s"Prog failed with $error"),
+    success => IO.succeed(s"Prog succeeded with $success")
+  )
+  
+  val progWithEnv: ZIO[Any, Nothing, String] = progWithoutError.provideLayer(Console.live)
+  val out : String                           = Runtime.default.unsafeRun(progWithEnv)
+  println(out)  
 ```
 
 ## But why
@@ -268,9 +308,7 @@ Angenommen wir haben zwei Effekte
   def getDefaultConfig(): ZIO[Any, Exception, Config]    = ???
 ```
 
-Die wissen nichts von Thread oder sonst irgenwas. Aber da sie nur interpretiert werden.
-
-Vielleicht kann ja ZIO helfen
+Vielleicht hat ZIO ja ein paar Möglichkeiten
 
 ## Machs nochmal Sam
 
@@ -308,3 +346,23 @@ def getConfig(): ZIO[Clock, Exception, Config] =
       config <- getConfigFromServer().race(getDefaultConfig())
   } yield config
 ```
+## ZIO liefert viele Datenstypen als Effekt:
+
+* Promise
+* Queue
+* Stream
+* Fiber
+
+## Fazit
+
+* Code als Wert zu modellieren ermöglicht
+  * Den Kontext der Ausführung zu wählen
+  * Reinen und nicht reinen Code zu trennen
+* Funktionale Effekt Frameworks eröffnen viele Möglichkeiten
+* Es gibt Implementierungen in Java. :)
+
+## Referenzen
+
+* [ZIO](https://zio.dev)
+* [Cyclops X](https://github.com/aol/cyclops)
+

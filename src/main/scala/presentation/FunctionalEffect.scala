@@ -6,11 +6,11 @@ import console.ConsoleSyntax._
 
 object FunctionalEffect {
 
-  val example1: Console[Unit] =
-    PrintLine("Hello, what is your name?", ReadLine(name => PrintLine(s"Good to meet you, ${name}", Return(() => ()))))
+  val example1: Console[String] =
+    PrintLine("Hello, what is your name?", ReadLine(name => PrintLine(s"Good to meet you, ${name}", Return(() => (name)))))
 
   def basic() = {
-    val example =
+    val example : Console[String] =
       PrintLine(
         "Sag hallo zur Konsole",
         ReadLine(line => PrintLine(s"Es wurde ${line} eingegeben", Return(() => line)))
